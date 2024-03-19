@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  lame.test:
+    image: ${DOCKER_REGISTRY-}lametest
+    build:
+      context: .
+      dockerfile: Lame.Test/Dockerfile

@@ -35,11 +35,7 @@ using System;
 using System.Text;
 using System.Runtime.InteropServices;
 
-#if X64
-using size_t = System.UInt64;
-#else
-using size_t = System.UInt32;
-#endif
+using size_t = System.UIntPtr;
 
 namespace LameDLLWrap
 {
@@ -55,11 +51,37 @@ namespace LameDLLWrap
 
 	internal static class NativeMethods
 	{
-#if X64
-		const string libname = @"libmp3lame.64.dll";
-#else
-		const string libname = @"libmp3lame.32.dll";
-#endif
+        static NativeMethods()
+        {
+            NativeLibrary.SetDllImportResolver(typeof(NativeMethods).Assembly, ImportResolver);
+        }
+
+        private static IntPtr ImportResolver(string libraryName, System.Reflection.Assembly assembly, DllImportSearchPath? searchPath)
+        {
+            var libHandle = IntPtr.Zero;
+
+            if (libraryName != libname)
+            {
+                return libHandle;
+            }
+
+            switch (Environment.OSVersion.Platform)
+            {
+                case PlatformID.Win32NT when Environment.Is64BitProcess:
+                    NativeLibrary.TryLoad(libname + ".64.dll", assembly, searchPath, out libHandle);
+                    break;
+                case PlatformID.Win32NT:
+                    NativeLibrary.TryLoad(libname + ".32.dll", assembly, searchPath, out libHandle);
+                    break;
+                case PlatformID.Unix:
+                    NativeLibrary.TryLoad(libname + ".so.0", assembly, searchPath, out libHandle);
+                    break;
+            }
+
+            return libHandle;
+        }
+
+        const string libname = @"libmp3lame";
 
 #pragma warning disable IDE1006 // Naming Styles
 

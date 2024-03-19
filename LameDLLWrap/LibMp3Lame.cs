@@ -37,11 +37,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.InteropServices;
 
-#if X64
-using size_t = System.UInt64;
-#else
-using size_t = System.UInt32;
-#endif
+using size_t = System.UIntPtr;
 
 namespace LameDLLWrap
 {

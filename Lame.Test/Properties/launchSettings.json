@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Lame.Test": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

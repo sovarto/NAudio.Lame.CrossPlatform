@@ -35,11 +35,6 @@
 using System;
 using System.Runtime.InteropServices;
 
-#if X64
-using size_t = System.UInt64;
-#else
-#endif
-
 namespace LameDLLWrap
 {
 	/// <summary>LAME DLL version information</summary>

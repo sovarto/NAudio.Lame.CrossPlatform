@@ -1,0 +1,121 @@
+name: publish
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - 'main'       # Run the workflow when pushing to the main branch
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - '*'          # Run the workflow for all pull requests
+
+env:
+  NuGetDirectory: ${{ github.workspace}}/nuget/
+
+jobs:
+  ci-windows:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        dnversion: ['8.0.x']
+
+    steps:
+    - name: Check out repository
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET ${{ matrix.dnversion }}
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ matrix.dnversion }}
+
+    - name: Restore packages
+      run: dotnet restore NAudio.Lame.CrossPlatform.sln
+
+    - name: Build LameDLLWrap (Debug|AnyCPU)
+      run: dotnet build LameDLLWrap -c:Debug -p:Platform=AnyCPU
+    - name: Build NAudio.Lame
+      run: dotnet build NAudio.Lame -c:Debug -p:Platform=AnyCPU
+    - name: Build Lame.Test
+      run: dotnet build Lame.Test -c:Debug -p:Platform=AnyCPU
+    - name: Run tests
+      run: dotnet test Lame.Test
+
+  ci-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dnversion: ['8.0.x']
+
+    steps:
+      - name: Install libmp3lame
+        run: sudo apt-get install -y lame
+        
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ matrix.dnversion }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dnversion }}
+
+      - name: Restore packages
+        run: dotnet restore NAudio.Lame.CrossPlatform.sln
+
+      - name: Build LameDLLWrap (Debug|AnyCPU)
+        run: dotnet build LameDLLWrap -c:Debug -p:Platform=AnyCPU
+      - name: Build NAudio.Lame
+        run: dotnet build NAudio.Lame -c:Debug -p:Platform=AnyCPU
+      - name: Build Lame.Test
+        run: dotnet build Lame.Test -c:Debug -p:Platform=AnyCPU
+      - name: Run tests
+        run: dotnet test Lame.Test
+          
+  create_nuget:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    strategy:
+      matrix:
+        dnversion: ['8.0.x']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET ${{ matrix.dnversion }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dnversion }}
+      
+      - name: Build Nuget package
+        run: |
+          VERSION_SUFFIX="/p:Version=${GITHUB_REF#refs/tags/v}"
+          dotnet pack ./NAudio.Lame/NAudio.Lame.csproj --configuration Release --output ${{ env.NuGetDirectory }} $VERSION_SUFFIX
+          
+      # Publish the NuGet package as an artifact, so they can be used in the following jobs
+      - uses: actions/upload-artifact@v3
+        with:
+          name: nuget
+          if-no-files-found: error
+          retention-days: 7
+          path: ${{ env.NuGetDirectory }}/*.nupkg
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ create_nuget, ci-windows, ci-linux ]
+    strategy:
+      matrix:
+        dnversion: ['8.0.x']
+    steps:
+      # Download the NuGet package created in the previous job
+      - uses: actions/download-artifact@v3
+        with:
+          name: nuget
+          path: ${{ env.NuGetDirectory }}
+
+      - name: Setup .NET ${{ matrix.dnversion }}
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dnversion }}
+      
+      - name: Publish NuGet package
+        run: dotnet nuget push ${{ env.NuGetDirectory }} --api-key "${{ secrets.NUGET_APIKEY }}" --source https://api.nuget.org/v3/index.json --skip-duplicate

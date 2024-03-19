@@ -33,11 +33,6 @@
 //
 #endregion
 
-#if X64
-using size_t = System.UInt64;
-#else
-#endif
-
 namespace LameDLLWrap
 {
 	/// <summary>Variable BitRate Mode</summary>

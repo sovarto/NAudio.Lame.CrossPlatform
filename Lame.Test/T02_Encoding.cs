@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NAudio.Lame;
 using NAudio.Wave;
+using NLayer.NAudioSupport;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +13,7 @@ namespace Lame.Test
 	[TestClass]
 	public class T02_Encoding
 	{
-		private const string SourceFilename = @"Test.wav";
+		private const string SourceFilename = @"test.wav";
 
 		private static Stream EncodeSampleFile(LameConfig config, int copies = 1)
 		{
@@ -85,10 +86,10 @@ namespace Lame.Test
 					source.CopyTo(mp3writer);
 					Assert.AreEqual(source.Length, source.Position);
 				}
-
-				// Open MP3 file and test content
-				mp3data.Position = 0;
-				using (var encoded = new Mp3FileReader(mp3data))
+                var builder = new Mp3FileReaderBase.FrameDecompressorBuilder(wf => new Mp3FrameDecompressor(wf));
+                // Open MP3 file and test content
+                mp3data.Position = 0;
+				using (var encoded = new Mp3FileReaderBase(mp3data, builder))
 				{
 					var fmt = encoded.WaveFormat;
 
@@ -119,8 +120,9 @@ namespace Lame.Test
 		{
 			bool TestFormat(WaveFormat format)
 			{
-				using (var mp3data = EncodeSilence(new LameConfig { Preset = LAMEPreset.STANDARD }, format, 1))
-				using (var reader = new Mp3FileReader(mp3data))
+                var builder = new Mp3FileReaderBase.FrameDecompressorBuilder(wf => new Mp3FrameDecompressor(wf));
+                using (var mp3data = EncodeSilence(new LameConfig { Preset = LAMEPreset.STANDARD }, format, 1))
+				using (var reader = new Mp3FileReaderBase(mp3data, builder))
 				{
 					var encodedFormat = format;
 					return
@@ -181,8 +183,9 @@ namespace Lame.Test
 		{
 			bool TestSampleRate(int rate)
 			{
-				using (var mp3data = EncodeSampleFile(new LameConfig { OutputSampleRate = rate }))
-				using (var reader = new Mp3FileReader(mp3data))
+                var builder = new Mp3FileReaderBase.FrameDecompressorBuilder(wf => new Mp3FrameDecompressor(wf));
+                using (var mp3data = EncodeSampleFile(new LameConfig { OutputSampleRate = rate }))
+				using (var reader = new Mp3FileReaderBase(mp3data, builder))
 				{
 					return reader.Mp3WaveFormat.SampleRate == rate;
 				}

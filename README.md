@@ -1,20 +1,23 @@
 # NAudio.Lame
-[![Build Status](https://github.com/Corey-M/NAudio.Lame/actions/workflows/CI_NetCore_2_2.yml/badge.svg)](https://github.com/Corey-M/NAudio.Lame/actions?workflow=.NET%20Core%202.2)
+[![Build Status](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions/workflows/CI_Net8.yml/badge.svg)](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions?workflow=publish)
 ## Description
 
-Wrapper for `libmp3lame.dll` to add MP3 encoding support to NAudio 2.0 on Windows.
+Wrapper for `libmp3lame` to add MP3 encoding support to NAudio 2.x on Windows and Linux.
 
-**IMPORTANT:** Because this wraps Windows native DLLs *it will not work on any other operating system.*
-It may function with Windows emulation layers but I have never tested this.
+**IMPORTANT:** This is the cross-platform version of the awesome NAudio.Lame by Corey Murtagh.
 
 Includes both 32-bit and 64-bit versions of Windows native `libmp3lame.dll` (named `libmp3lame.32.dll` and `libmp3lame.64.dll` respectively), both of which will be copied to the output folder on build.
 If you are compiling for a specific CPU target - `x86` or `x64` - then you only need to distribute the appropriate version.
 
-The `LameDLLWrap` project is the interface to both 32-bit and 64-bit version of the native DLLs, and is compiled for both targets.
-Both versions are compiled into resources in `NAudio.Lame.dll`.
-At runtime the version for the current process bit width is loaded from resources, which then references the appropriate native library.
+On Linux, you need to install libmp3lame.so via the package manager of the OS.  
+Examples:
 
-Please note that native library loading will fail if for any reason the application's binary path is not in the current search path.
+- Ubuntu: `apt-get install lame`
+- Alpine: `apk add lame`
+
+The `LameDLLWrap` project is the interface to the native DLL.  
+
+Please note that native library loading will fail on Windows if for any reason the application's binary path is not in the current search path.
 This will happen for example in ASP.NET projects.
 
 ## Usage
@@ -28,6 +31,7 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
     using System.IO;
     using NAudio.Wave;
     using NAudio.Lame;
+    using NLayer.NAudioSupport; // Required for reading MP3 on Linux
 
     public static class Codec
     {
@@ -42,7 +46,8 @@ Here is a very simple codec class to convert a WAV file to and from MP3:
         // Convert MP3 file to WAV using NAudio classes only
         public static void MP3ToWave(string mp3FileName, string waveFileName)
         {
-            using (var reader = new Mp3FileReader(mp3FileName))
+            var builder = new Mp3FileReaderBase.FrameDecompressorBuilder(wf => new Mp3FrameDecompressor(wf)); // Required on Linux
+            using (var reader = new Mp3FileReaderBase(mp3FileName, builder))
             using (var writer = new WaveFileWriter(waveFileName, reader.WaveFormat))
                 reader.CopyTo(writer);
         }
@@ -169,7 +174,16 @@ From v1.1.1 there is a new `LameConfig` class which has a variety of settings th
 
 While there are many more settings available I don't have a clear picture of who wants what.  If you're desperate for the quantization or filtering settings let me know.
 
-## Relase Notes
+## Release Notes
+
+### Version 2.2.1
+
+Release to NuGet 19-March-2024
+
+Changes:
+* Cross-platform: Supports Windows and Linux
+* Drops support for .NET Framework
+* Binding to NAudio 2.2.1
 
 ### Version 2.1.0
 
