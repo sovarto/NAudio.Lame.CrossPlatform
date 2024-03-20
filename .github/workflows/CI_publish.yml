@@ -85,14 +85,17 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ matrix.dnversion }}
-      
+
+      - name: Restore packages
+        run: dotnet restore NAudio.Lame.CrossPlatform.sln
+
       - name: Build Nuget package
         run: |
           VERSION_SUFFIX="/p:Version=${GITHUB_REF#refs/tags/v}"
           dotnet pack ./NAudio.Lame/NAudio.Lame.csproj --configuration Release --output ${{ env.NuGetDirectory }} $VERSION_SUFFIX
           
       # Publish the NuGet package as an artifact, so they can be used in the following jobs
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: nuget
           if-no-files-found: error
@@ -107,7 +110,7 @@ jobs:
         dnversion: ['8.0.x']
     steps:
       # Download the NuGet package created in the previous job
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
         with:
           name: nuget
           path: ${{ env.NuGetDirectory }}

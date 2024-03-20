@@ -1,5 +1,5 @@
 # NAudio.Lame
-[![Build Status](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions/workflows/CI_Net8.yml/badge.svg)](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions?workflow=publish)
+[![Build Status](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions/workflows/CI_publish.yml/badge.svg)](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions?workflow=publish)
 ## Description
 
 Wrapper for `libmp3lame` to add MP3 encoding support to NAudio 2.x on Windows and Linux.

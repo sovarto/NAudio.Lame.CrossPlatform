@@ -12,7 +12,7 @@
     <PackageId>NAudio.Lame.CrossPlatform</PackageId>
     <Title>NAudio.Lame.CrossPlatform</Title>
     <PackageProjectUrl>https://github.com/sovarto/NAudio.Lame.CrossPlatform</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/sovarto/NAudio.Lame.CrossPlatform/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <RepositoryUrl>https://github.com/sovarto/NAudio.Lame.CrossPlatform</RepositoryUrl>
     <PackageTags>NAudio MP3 Lame Windows Linux</PackageTags>
     <PackageReleaseNotes>v2.2.1 Add Linux support, updated to NAudio 2.2.1.
@@ -56,10 +56,7 @@ v1.1.0 Changed all projects to .NET STandard 2.0, rebuilt testing using .NET Cor
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\LICENSE.txt">
-      <Pack>True</Pack>
-      <PackagePath></PackagePath>
-    </None>
+    <None Include="..\LICENSE.txt" Pack="true" PackagePath="\"/>
     <None Include="..\README.md" Pack="true" PackagePath="\"/>
   </ItemGroup>
   
@@ -67,4 +64,5 @@ v1.1.0 Changed all projects to .NET STandard 2.0, rebuilt testing using .NET Cor
     <ProjectReference Include="..\LameDLLWrap\LameDLLWrap.csproj" />
   </ItemGroup>
 
+  <Import Project="WalkEachTargetPerProject.targets" />
 </Project>
