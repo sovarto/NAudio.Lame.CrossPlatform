@@ -1,4 +1,4 @@
-# NAudio.Lame
+# NAudio.Lame.CrossPlatform
 [![Build Status](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions/workflows/CI_publish.yml/badge.svg)](https://github.com/sovarto/NAudio.Lame.CrossPlatform/actions?workflow=publish)
 ## Description
 
